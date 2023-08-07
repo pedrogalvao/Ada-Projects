@@ -26,12 +26,20 @@ package body task_pkg is
 
    procedure Print_Task(t: Task_Record) is 
    begin
-      for i in 0..20 loop
+      for i in 0..50 loop
          Put("_");
       end loop;
       Put_Line("");
-      Put_Line(To_String(t.title));
-      Put_Line(To_String(t.description));
+      Put_Line("  " & To_String(t.title));
+      for i in 0..50 loop
+         Put("-");
+      end loop;
+      Put_Line("");
+      Put_Line("  " & To_String(t.description));
+      for i in 0..50 loop
+         Put("-");
+      end loop;
+      Put_Line("");
    end Print_Task;
    
    function Get_Task return Task_Record is 

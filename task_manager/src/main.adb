@@ -33,7 +33,6 @@ begin
          when Delete_Task =>
             Put_Line ("title:");
             task_title := To_Unbounded_String(Get_Line);
-            -- C := Task_List.Cursor'First;
             I := 0;
             for task0 in tl.Iterate loop
                if tl.Element(I).title = task_title then
