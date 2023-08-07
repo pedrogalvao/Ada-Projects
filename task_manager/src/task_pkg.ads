@@ -22,4 +22,7 @@ package task_pkg is
    type Command is (Add_Task, Delete_Task, View_Tasks, No_Command);
    function Parse_Command(cmd_str : Unbounded_String) return Command;
    
+   procedure Add_New_Task(tl: in out Task_List.Vector);
+   procedure Remove_Task(tl: in out Task_List.Vector);
+   procedure Print_Task_List(tl: Task_List.Vector);
 end task_pkg;
