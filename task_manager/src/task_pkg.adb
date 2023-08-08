@@ -63,14 +63,70 @@ package body task_pkg is
       t : Time;
       TZ : Time_Offset := UTC_Time_Offset;
       Day_Duration : Duration := 1.0 * 3600 * 24;
+      Day_Str : Unbounded_String := To_Unbounded_String("");
+      Month_Str : Unbounded_String := To_Unbounded_String("");
+      Year_Str : Unbounded_String := To_Unbounded_String("");
+      Day : Positive;
+      Month : Positive;
+      Year : Positive;
+      Str_Index : Positive := 1;
    begin
-      if Case_Insensitive_Compare(time_str, To_Unbounded_String("now")) then
+      if Case_Insensitive_Compare(time_str, To_Unbounded_String("now")) or else Case_Insensitive_Compare(time_str, To_Unbounded_String("today")) then
          return Clock;
       elsif Case_Insensitive_Compare(time_str, To_Unbounded_String("tomorrow")) then
          return Clock + Day_Duration;
       end if;
-      t := Ada.Calendar.Formatting.Value(To_String(time_str), TZ);
+      
+      while Str_Index < Length (time_str) loop
+         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+            exit;
+         else
+            Day_Str := Day_Str & Element (time_str, Str_Index);
+         end if;
+         Str_Index := Str_Index + 1;
+      end loop;
+      Day := Positive'Value(To_String(Day_Str));
+      Put(To_String(Day_Str));
+      
+      while Str_Index < Length (time_str) loop
+         Str_Index := Str_Index + 1;
+         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+            exit;
+         else
+            Month_Str := Month_Str & Element (time_str, Str_Index);
+         end if;
+      end loop;
+      Month := Positive'Value(To_String(Month_Str));
+      Put(To_String(Month_Str));
+      
+      while Str_Index < Length (time_str) loop
+         Str_Index := Str_Index + 1;
+         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+            exit;
+         else
+            Year_Str := Year_Str & Element (time_str, Str_Index);
+         end if;
+      end loop;
+      Year := Positive'Value(To_String(Year_Str));
+      Put(To_String(Year_Str));
+      
+      t := Ada.Calendar.Formatting.Time_Of
+       (Year        => Year,
+        Month       => Month,
+        Day         => Day,
+        Hour        => 0,
+        Minute      => 0,
+        Second      => 1,
+        Sub_Second  => 0.0,
+        Leap_Second => False,
+        Time_Zone   => TZ);
+      
+      --t := Ada.Calendar.Formatting.Value(To_String(time_str), TZ);
       return t;
+   exception
+      when E : CONSTRAINT_ERROR =>
+         Put_Line ("Invalid date. Adding deadline for tomorrow");
+         return Clock + Day_Duration;
    end Parse_Time;
    
    function Get_Task return Task_Record is 
