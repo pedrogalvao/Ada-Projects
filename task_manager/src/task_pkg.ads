@@ -31,6 +31,10 @@ package task_pkg is
        (Index_Type   => Natural,
         Element_Type => Task_Record);
    
+   function Compare_Task_Deadlines(task1, task2 : Task_Record) return Boolean;
+   package Task_List_Sorting is
+     new Task_List.Generic_Sorting(Compare_Task_Deadlines);
+   
    procedure Print_Task(t: Task_Record; task_number : Positive);
    function Get_Task return Task_Record;
    
@@ -40,4 +44,5 @@ package task_pkg is
    procedure Add_New_Task(tl: in out Task_List.Vector);
    procedure Remove_Task(tl: in out Task_List.Vector);
    procedure Print_Task_List(tl: Task_List.Vector);
+   procedure Order_By_Deadline(tl: in out Task_List.Vector);
 end task_pkg;

@@ -232,4 +232,29 @@ package body task_pkg is
       end if;
       Put_Line("");
    end Remove_Task;
+   
+   function Compare_Task_Deadlines(task1, task2 : Task_Record) return Boolean is
+   begin
+      case task1.task_deadline.Kind is
+         when None =>
+            if task2.task_deadline.Kind = None then
+               return task1.title < task2.title;
+            else
+               return false;
+            end if;
+         when Date | DateTime =>
+            case task2.task_deadline.Kind is
+            when None =>
+               return true;
+            when Date | DateTime =>
+               return task1.task_deadline.all.t < task2.task_deadline.all.t;
+            end case;
+      end case;    
+   end Compare_Task_Deadlines;
+   
+   procedure Order_By_Deadline(tl: in out Task_List.Vector) is
+   begin
+      Task_List_Sorting.Sort
+        (Container => tl);
+   end Order_By_Deadline;
 end task_pkg;

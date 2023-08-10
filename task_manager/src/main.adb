@@ -20,6 +20,7 @@ begin
       case cmd is
          when Add_Task =>
             Add_New_Task(tl);
+            Order_By_Deadline(tl);
          when View_Tasks =>
             Print_Task_List(tl);
          when Delete_Task =>
