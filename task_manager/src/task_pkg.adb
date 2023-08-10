@@ -159,8 +159,13 @@ package body task_pkg is
       task_deadline : Deadline_Access;
       TZ : Time_Offset := UTC_Time_Offset;
    begin
-      Put("Task Title: ");
-      task_title := To_Unbounded_String(Get_Line);
+      while task_title = To_Unbounded_String("") loop
+         Put("Task Title: ");
+         task_title := To_Unbounded_String(Get_Line);
+         if task_title = To_Unbounded_String("") then
+            Put_Line("Title cannot be empty");
+         end if;
+      end loop;
       Put("Task Description: ");
       task_description := To_Unbounded_String(Get_Line);
       Put("Task Deadline: ");
@@ -204,7 +209,7 @@ package body task_pkg is
          end loop;
          Put_Line("");
       else
-         Put("Task list is empty");
+         Put_Line("Task list is empty");
       end if;
    end Print_Task_List;
    
@@ -213,7 +218,7 @@ package body task_pkg is
       task_title : Unbounded_String;
       Task_Found : Boolean;
    begin
-      Put ("Title:");
+      Put ("Title or Number: ");
       task_title := To_Unbounded_String(Get_Line);
       I := 0;
       Task_Found := False;
@@ -228,9 +233,18 @@ package body task_pkg is
          tl.Delete(I);
          Put_Line("Task removed");
       else
-         Put_Line("Task not found");
+         I := Integer'Value(To_String(task_title)) - 1;
+         if 0 <= I and then I < Integer(tl.Length) then
+            tl.Delete(I);
+         else
+            Put_Line("Task not found");
+         end if;
       end if;
       Put_Line("");
+      exception
+      when Constraint_Error =>
+         Put_Line("Task not found");
+         Put_Line("");
    end Remove_Task;
    
    function Compare_Task_Deadlines(task1, task2 : Task_Record) return Boolean is
@@ -249,7 +263,7 @@ package body task_pkg is
             when Date | DateTime =>
                return task1.task_deadline.all.t < task2.task_deadline.all.t;
             end case;
-      end case;    
+      end case;
    end Compare_Task_Deadlines;
    
    procedure Order_By_Deadline(tl: in out Task_List.Vector) is
