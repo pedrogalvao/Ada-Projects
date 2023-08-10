@@ -31,7 +31,7 @@ package task_pkg is
        (Index_Type   => Natural,
         Element_Type => Task_Record);
    
-   procedure Print_Task(t: Task_Record);
+   procedure Print_Task(t: Task_Record; task_number : Positive);
    function Get_Task return Task_Record;
    
    type Command is (Add_Task, Delete_Task, View_Tasks, No_Command);

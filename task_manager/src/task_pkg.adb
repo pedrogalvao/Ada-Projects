@@ -53,14 +53,14 @@ package body task_pkg is
       end case;
    end Print_Deadline;
 
-   procedure Print_Task(t: Task_Record) is 
+   procedure Print_Task(t: Task_Record; task_number : Positive) is 
    begin
       for i in 0..50 loop
          Put("_");
       end loop;
       Put_Line("");
-      Put("  " & To_String(t.title));
-      for i in 0..(35 - To_String(t.title)'Length) loop
+      Put(" " & Integer'Image(task_number) & " - " & To_String(t.title));
+      for i in 0..(30 - To_String(t.title)'Length) loop
          Put(" ");
       end loop;
       Print_Deadline(t.task_deadline.all);
@@ -73,7 +73,7 @@ package body task_pkg is
       end if;
    end Print_Task;
    
-   function Parse_Time(time_str : Unbounded_String) return Deadline_Access is
+   function Parse_Deadline(time_str : Unbounded_String) return Deadline_Access is
       t : Time;
       TZ : Time_Offset := UTC_Time_Offset;
       Day_Duration : Duration := 1.0 * 3600 * 24;
@@ -150,7 +150,7 @@ package body task_pkg is
       when E : CONSTRAINT_ERROR =>
          Put_Line ("Invalid date. Adding task without deadline");
          return new Deadline(None);
-   end Parse_Time;
+   end Parse_Deadline;
    
    function Get_Task return Task_Record is 
       t: Task_Record;
@@ -164,7 +164,7 @@ package body task_pkg is
       Put("Task Description: ");
       task_description := To_Unbounded_String(Get_Line);
       Put("Task Deadline: ");
-      task_deadline := Parse_Time(To_Unbounded_String(Get_Line));
+      task_deadline := Parse_Deadline(To_Unbounded_String(Get_Line));
       t := (title => task_title, description => task_description, task_deadline => task_deadline);
       return t;
    end Get_Task;
@@ -191,11 +191,13 @@ package body task_pkg is
    end Add_New_Task;
    
    procedure Print_Task_List(tl: Task_List.Vector) is
+      task_number : Positive := 1;
    begin
       if tl.Length > 0 then
          Put_Line("Task List:");
          for t of tl loop
-            Print_Task(t);
+            Print_Task(t, task_number);
+            task_number := task_number + 1;
          end loop;
          for i in 0..50 loop
             Put("_");
