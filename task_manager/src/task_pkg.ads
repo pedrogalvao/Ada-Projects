@@ -5,10 +5,25 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package task_pkg is
    
+   
+   type Deadline_Kind_Type is (None,
+                           Date,
+                           DateTime);
+
+   type Deadline (Kind : Deadline_Kind_Type) is record
+      case Kind is
+         when Date | DateTime =>
+            t : Time;
+         when None =>
+            null;
+      end case;
+   end record;
+   type Deadline_Access is access Deadline;
+   
    type Task_Record is record
       title : unbounded_string;
       description : unbounded_string;
-      deadline: Time;
+      task_deadline: Deadline_Access;
    end record;
    
    package Task_List is new

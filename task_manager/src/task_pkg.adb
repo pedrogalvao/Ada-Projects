@@ -23,21 +23,35 @@ package body task_pkg is
       return To_Lower_Case(A) = To_Lower_Case(B);
    end Case_Insensitive_Compare;
    
-   procedure Print_Time(t: Time) is
+   procedure Print_Deadline(d: Deadline) is
       Now_Year    : Year_Number;
       Now_Month   : Month_Number;
       Now_Day     : Day_Number;
       Now_Seconds : Day_Duration;
    begin
-      Split (t,
-             Now_Year,
-             Now_Month,
-             Now_Day,
-             Now_Seconds);
+      case d.Kind is 
+         when Date =>
+            Split (d.t,
+                   Now_Year,
+                   Now_Month,
+                   Now_Day,
+                   Now_Seconds);
 
-      Put (Day_Number'Image (Now_Day) & "/" & Month_Number'Image (Now_Month) & "/" & Year_Number'Image (Now_Year));
-      Put_Line("");
-   end Print_Time;
+            Put (Day_Number'Image (Now_Day) & "/" & Month_Number'Image (Now_Month) & "/" & Year_Number'Image (Now_Year));
+            Put_Line("");
+         when DateTime =>
+            Split (d.t,
+                   Now_Year,
+                   Now_Month,
+                   Now_Day,
+                   Now_Seconds);
+
+            Put (Day_Number'Image (Now_Day) & "/" & Month_Number'Image (Now_Month) & "/" & Year_Number'Image (Now_Year));
+            Put_Line("");
+         when None =>
+            Put_Line("");
+      end case;
+   end Print_Deadline;
 
    procedure Print_Task(t: Task_Record) is 
    begin
@@ -49,7 +63,7 @@ package body task_pkg is
       for i in 0..(35 - To_String(t.title)'Length) loop
          Put(" ");
       end loop;
-      Print_Time(t.deadline);
+      Print_Deadline(t.task_deadline.all);
       if To_String(t.description)'Length > 0 then 
          for i in 0..50 loop
             Put("-");
@@ -59,7 +73,7 @@ package body task_pkg is
       end if;
    end Print_Task;
    
-   function Parse_Time(time_str : Unbounded_String) return Time is
+   function Parse_Time(time_str : Unbounded_String) return Deadline_Access is
       t : Time;
       TZ : Time_Offset := UTC_Time_Offset;
       Day_Duration : Duration := 1.0 * 3600 * 24;
@@ -70,70 +84,79 @@ package body task_pkg is
       Month : Positive;
       Year : Positive;
       Str_Index : Positive := 1;
+      d : Deadline_Access;
    begin
-      if Case_Insensitive_Compare(time_str, To_Unbounded_String("now")) or else Case_Insensitive_Compare(time_str, To_Unbounded_String("today")) then
-         return Clock;
+         
+      if time_str = To_Unbounded_String("") then 
+         return new Deadline(None);
+      elsif Case_Insensitive_Compare(time_str, To_Unbounded_String("now")) or else Case_Insensitive_Compare(time_str, To_Unbounded_String("today")) then
+         t := Clock;
       elsif Case_Insensitive_Compare(time_str, To_Unbounded_String("tomorrow")) then
-         return Clock + Day_Duration;
+         t :=  Clock + Day_Duration;
+      elsif Case_Insensitive_Compare(time_str, To_Unbounded_String("next week")) then
+         t :=  Clock + 7 * Day_Duration;
+      else
+         while Str_Index < Length (time_str) loop
+            if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+               exit;
+            else
+               Day_Str := Day_Str & Element (time_str, Str_Index);
+            end if;
+            Str_Index := Str_Index + 1;
+         end loop;
+         Day := Positive'Value(To_String(Day_Str));
+         Put(To_String(Day_Str));
+      
+         while Str_Index < Length (time_str) loop
+            Str_Index := Str_Index + 1;
+            if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+               exit;
+            else
+               Month_Str := Month_Str & Element (time_str, Str_Index);
+            end if;
+         end loop;
+         Month := Positive'Value(To_String(Month_Str));
+         Put(To_String(Month_Str));
+      
+         while Str_Index < Length (time_str) loop
+            Str_Index := Str_Index + 1;
+            if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
+               exit;
+            else
+               Year_Str := Year_Str & Element (time_str, Str_Index);
+            end if;
+         end loop;
+         Year := Positive'Value(To_String(Year_Str));
+         Put(To_String(Year_Str));
+      
+         t := Ada.Calendar.Formatting.Time_Of
+           (Year        => Year,
+            Month       => Month,
+            Day         => Day,
+            Hour        => 0,
+            Minute      => 0,
+            Second      => 1,
+            Sub_Second  => 0.0,
+            Leap_Second => False,
+            Time_Zone   => TZ);
+      
+         --t := Ada.Calendar.Formatting.Value(To_String(time_str), TZ);
+         
       end if;
-      
-      while Str_Index < Length (time_str) loop
-         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
-            exit;
-         else
-            Day_Str := Day_Str & Element (time_str, Str_Index);
-         end if;
-         Str_Index := Str_Index + 1;
-      end loop;
-      Day := Positive'Value(To_String(Day_Str));
-      Put(To_String(Day_Str));
-      
-      while Str_Index < Length (time_str) loop
-         Str_Index := Str_Index + 1;
-         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
-            exit;
-         else
-            Month_Str := Month_Str & Element (time_str, Str_Index);
-         end if;
-      end loop;
-      Month := Positive'Value(To_String(Month_Str));
-      Put(To_String(Month_Str));
-      
-      while Str_Index < Length (time_str) loop
-         Str_Index := Str_Index + 1;
-         if Element (time_str, Str_Index) = '/' or else Element (time_str, Str_Index) = '-' then
-            exit;
-         else
-            Year_Str := Year_Str & Element (time_str, Str_Index);
-         end if;
-      end loop;
-      Year := Positive'Value(To_String(Year_Str));
-      Put(To_String(Year_Str));
-      
-      t := Ada.Calendar.Formatting.Time_Of
-       (Year        => Year,
-        Month       => Month,
-        Day         => Day,
-        Hour        => 0,
-        Minute      => 0,
-        Second      => 1,
-        Sub_Second  => 0.0,
-        Leap_Second => False,
-        Time_Zone   => TZ);
-      
-      --t := Ada.Calendar.Formatting.Value(To_String(time_str), TZ);
-      return t;
+      d := new Deadline(Date);
+      d.all.t := t;
+      return d;
    exception
       when E : CONSTRAINT_ERROR =>
-         Put_Line ("Invalid date. Adding deadline for tomorrow");
-         return Clock + Day_Duration;
+         Put_Line ("Invalid date. Adding task without deadline");
+         return new Deadline(None);
    end Parse_Time;
    
    function Get_Task return Task_Record is 
       t: Task_Record;
       task_title : Unbounded_String;
       task_description : Unbounded_String;
-      task_deadline : Time;
+      task_deadline : Deadline_Access;
       TZ : Time_Offset := UTC_Time_Offset;
    begin
       Put("Task Title: ");
@@ -142,7 +165,7 @@ package body task_pkg is
       task_description := To_Unbounded_String(Get_Line);
       Put("Task Deadline: ");
       task_deadline := Parse_Time(To_Unbounded_String(Get_Line));
-      t := (title => task_title, description => task_description, Deadline => task_deadline);
+      t := (title => task_title, description => task_description, task_deadline => task_deadline);
       return t;
    end Get_Task;
    
